@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Finance Manager</title>
+  <link href="css/bootstrap.min.css" rel="stylesheet"/>
+
+  <style>
+    body {
+      background-color: #f4f6f9;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    h2 {
+      font-weight: 700;
+      color: #2c3e50;
+    }
+    .custom-card {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+      margin-bottom: 25px;
+    }
+    .showbox {
+      background: white;
+      border-radius: 10px;
+      padding: 15px;
+      margin: 10px 0;
+    }
+    .amount {
+      font-size: 28px;
+      font-weight: 700;
+    }
+    table {
+      background: white;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.05);
+    }
+    th {
+      background-color: #f8f9fa;
+    }
+  </style>
+</head>
+
+<body>
+<div class="container mt-5">
+  <h2 class="text-center mb-4">💰 Finance Management Application</h2>
+
+  <div class="row">
+    <div class="col-md-6">
+      <div class="custom-card border-start border-success border-4">
+        <label class="form-label">Enter Principal Amount</label>
+        <input type="number" class="form-control mb-3" id="principalInput" />
+        <button class="btn btn-success w-100" onclick="addPrincipal()">Add</button>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="custom-card border-start border-danger border-4">
+        <label class="form-label">Expense Name</label>
+        <input type="text" class="form-control mb-2" id="expenseName" />
+        <label class="form-label">Expense Amount</label>
+        <input type="number" class="form-control mb-3" id="expenseAmount" />
+        <button class="btn btn-outline-danger w-100" onclick="addExpense()">Add Expense</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="row text-center mt-3">
+    <div class="col-md-4">
+      <div class="showbox">
+        <h6>Initial Amount</h6>
+        <div class="amount text-success" id="initialAmount">$0.00</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="showbox">
+        <h6>Total Expenses</h6>
+        <div class="amount text-danger" id="totalExpenses">$0.00</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="showbox">
+        <h6>Remaining Balance</h6>
+        <div class="amount text-dark" id="balance">$0.00</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row mt-4">
+    <div class="col">
+      <table class="table table-hover text-center">
+        <thead>
+        <tr>
+          <th>Expense Name</th>
+          <th>Expense Value</th>
+          <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody id="expenseTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content rounded-4 shadow">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title" id="editModalLabel">ٍEdit Expenses</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <label class="form-label">Name</label>
+        <input type="text" class="form-control mb-3" id="editExpenseName" />
+        <label class="form-label">Value</label>
+        <input type="number" class="form-control" id="editExpenseAmount" />
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-success" id="saveEditBtn">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<script src="js/bootstrap.bundle.js"></script>
+
+<script>
+  let principal = 0;
+  let totalExpense = 0;
+  let expenses = [];
+  let editIndex = -1;
+
+  function addPrincipal() {
+    const input = document.getElementById("principalInput");
+    principal = parseFloat(input.value) || 0;
+    updateDisplay();
+    input.value = '';
+  }
+
+  function addExpense() {
+    const name = document.getElementById("expenseName").value.trim();
+    const amount = parseFloat(document.getElementById("expenseAmount").value) || 0;
+
+    if (name && amount > 0) {
+      expenses.push({ name, amount });
+      totalExpense += amount;
+      updateDisplay();
+      showTable();
+    }
+
+    document.getElementById("expenseName").value = '';
+    document.getElementById("expenseAmount").value = '';
+  }
+
+  function updateDisplay() {
+    document.getElementById("initialAmount").textContent = `$${principal.toFixed(2)}`;
+    document.getElementById("totalExpenses").textContent = `$${totalExpense.toFixed(2)}`;
+    document.getElementById("balance").textContent = `$${(principal - totalExpense).toFixed(2)}`;
+  }
+
+  function showTable() {
+    const tbody = document.getElementById("expenseTableBody");
+    tbody.innerHTML = '';
+
+    expenses.forEach((exp, index) => {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${exp.name}</td>
+        <td>$${exp.amount.toFixed(2)}</td>
+        <td>
+          <button class="btn btn-sm btn-warning me-2 edit-btn" data-index="${index}">📝</button>
+          <button class="btn btn-sm btn-danger delete-btn" data-index="${index}">🗑</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+    });
+  }
+
+  function deleteExpense(index) {
+    totalExpense -= expenses[index].amount;
+    expenses.splice(index, 1);
+    updateDisplay();
+    showTable();
+  }
+
+  function editExpense(index) {
+    editIndex = index;
+    const exp = expenses[index];
+    document.getElementById("editExpenseName").value = exp.name;
+    document.getElementById("editExpenseAmount").value = exp.amount;
+
+    const modal = new bootstrap.Modal(document.getElementById('editModal'));
+    modal.show();
+  }
+
+  document.getElementById("saveEditBtn").addEventListener("click", function () {
+    const name = document.getElementById("editExpenseName").value.trim();
+    const amount = parseFloat(document.getElementById("editExpenseAmount").value);
+
+    if (name && !isNaN(amount) && editIndex > -1) {
+      const oldAmount = expenses[editIndex].amount;
+      totalExpense = totalExpense - oldAmount + amount;
+
+      expenses[editIndex] = { name, amount };
+
+      updateDisplay();
+      showTable();
+
+      const modalEl = document.getElementById('editModal');
+      const modalInstance = bootstrap.Modal.getInstance(modalEl);
+      modalInstance.hide();
+
+      editIndex = -1;
+    }
+  });
+
+  document.getElementById("expenseTableBody").addEventListener("click", function (e) {
+    const target = e.target;
+    const index = parseInt(target.getAttribute("data-index"));
+
+    if (target.classList.contains("delete-btn")) {
+      deleteExpense(index);
+    }
+
+    if (target.classList.contains("edit-btn")) {
+      editExpense(index);
+    }
+  });
+</script>
+</body>
+</html>
